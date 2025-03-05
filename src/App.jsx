@@ -1,45 +1,55 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import './App.css'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const App = () => {
- const [count, setCount]= useState(30)
- const [users, setUsers]= useState(null)
+  const [users, setUsers] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const fetchApi =async () =>{
-  try{
-    const response = await axios.get('http://localhost:8000/api/users')
-    setUsers(response.data)
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:8000/api/users');
+      setUsers(response.data);
+    } catch (err) {
+      setError('Error occured during data loading');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  if (isLoading) {
+    return <div>Chargement en cours...</div>;
   }
-  catch(err){
-    console.log(err)
+
+  if (error) {
+    return <div>Erreur : {error}</div>;
   }
-}
-
-console.log(users)
-
-useEffect(()=>{
-  fetchApi()
-},[count])
 
   return (
     <>
-      <h1>hello world</h1>
-      <p>my name is {count}</p>
-      <button onClick={()=> setCount(count + 1)}>+1</button>
-      {users && users.map(user=>{
-        return(
-          <div style={{ border: '1px solid white' }}>
-            <h2>firstName: {user.firstName} </h2>
-            <h2>lastName: {user.lastName}</h2>
-            <h2>telephone: {user.telephone} </h2>
-            <h2>address: {user.address}</h2>
-            <h2>hobbies: {user.hobbies}</h2>
-          </div>
-        )
-      })}
+      <h1>Liste des utilisateurs</h1>
+      {users && users.map(user => (
+        <div key={user.id}>
+          <h2>Nom : {user.firstName} {user.lastName}</h2>
+          <p>Téléphone : {user.telephone}</p>
+          <p>Adresse : {user.address}</p>
+          <p>Loisirs : </p>
+          <ul>
+            {user.hobbies.map((hobby, index) => (
+              <li key={index}>{hobby}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </>
-  )        
-}
+  );
+};
 
-export default App
+export default App;
